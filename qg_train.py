@@ -61,7 +61,7 @@ class QGDataset(Dataset):
 
         encoded_text = tokenizer(
             row['text'], 
-            pad_to_max_length=True, 
+            padding=True, 
             max_length=SEQ_LENGTH,
             truncation=True,
             return_tensors="pt"
@@ -71,7 +71,7 @@ class QGDataset(Dataset):
 
         encoded_question = tokenizer(
             row['question'],
-            padding='longest',
+            padding=True,
             max_length=SEQ_LENGTH,
             truncation=True,
             return_tensors='pt'
