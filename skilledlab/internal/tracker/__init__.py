@@ -11,6 +11,12 @@ class Tracker:
     def set_global_step(self, global_step: Optional[int]):
         self.__global_step = global_step
 
+    def add_global_step(self, increment_global_step: int = 1):
+        if self.__global_step is None:
+            self.__global_step = self.global_step
+
+        self.__global_step += increment_global_step
+
 
 _internal: Optional[Tracker] = None
 
