@@ -1,0 +1,38 @@
+import pathlib
+from typing import Dict
+
+import numpy as np
+import torch
+import torch.nn
+
+from . import ModelSaver, experiment_singleton
+
+class PyTorchModelSaver(ModelSaver):
+    def __init__(self, name: str, model: torch.nn.Module):
+        self.name = name
+        self.model = model
+
+    def save(self, checkpoint_path: pathlib.Path) -> any:
+        state = self.model.state_dict()
+        file_name = f"{self.name}.pth"
+        torch.save(state, str(checkpoint_path / file_name))
+        return file_name
+
+    def load(self, checkpoint_path: pathlib.Path, info: any):
+        file_name: str = info
+        try:
+            sample_param = next(self.model.parameters())
+            device = sample_param.device
+        except StopIteration:
+            device = torch.device('cpu')
+
+        state = torch.load(str(checkpoint_path / file_name), map_location=device)
+
+        self.model.load_state_dict(state)
+
+
+def add_models(models: Dict[str, torch.nn.Module]):
+    exp = experiment_singleton()
+    savers = {name: PyTorchModelSaver(name, model) for name, model in models.items()}
+
+    exp.checkpoint_saver.add_savers(savers)
