@@ -6,7 +6,10 @@ from typing import Optional, List, Set, Dict, Union, TYPE_CHECKING, Any
 
 from skilledlab import logger
 from skilledlab.internal.configs.base import Configs
+from skilledlab.internal.configs.processor import ConfigProcessor
 from skilledlab.internal.experiment.experiment_run import Run
+from skilledlab.internal.experiment import experiment_run
+from skilledlab.internal.experiment.watcher import ExperimentWatcher
 from skilledlab.internal.lab import lab_singleton
 from skilledlab.internal.tracker import tracker_singleton as tracker
 from skilledlab.logger import Text
@@ -179,8 +182,42 @@ class Experiment:
             tags=list(tags))
 
         self.checkpoint_saver = CheckpointSaver(self.run.checkpoint_path)
-        
+        self.is_evaluate = is_evaluate
         self.distributed_rank = 0
+    
+    def __print_info(self):
+        """
+        🖨 Print the experiment info and check git repo status
+        """
+
+        logger.log()
+        logger.log([
+            (self.run.name, Text.title),
+            ': ',
+            (str(self.run.uuid), Text.meta)
+        ])
+
+        if self.run.comment != '':
+            logger.log(['\t', (self.run.comment, Text.highlight)])
+
+        commit_message = self.run.commit_message.strip().replace('\n', '¶ ').replace('\r', '')
+        logger.log([
+            "\t"
+            "[dirty]" if self.run.is_dirty else "[clean]",
+            ": ",
+            (f"\"{commit_message}\"", Text.highlight)
+        ])
+
+        if self.run.load_run is not None:
+            logger.log([
+                "\t"
+                "loaded from",
+                ": ",
+                (f"{self.run.load_run}", Text.meta2),
+            ])
+
+    def _load_checkpoint(self, checkpoint_path: pathlib.Path):
+        self.checkpoint_saver.load(checkpoint_path)
 
     def save_checkpoint(self):
         if self.is_evaluate:
@@ -190,7 +227,110 @@ class Experiment:
 
         self.checkpoint_saver.save(tracker().global_step)
     
+
+    def calc_configs(self,
+                     configs: Union[Configs, Dict[str, any]],
+                     configs_override: Optional[Dict[str, any]]):
+        if configs_override is None:
+            configs_override = {}
+        if global_params_singleton().configs is not None:
+            configs_override.update(global_params_singleton().configs)
+
+        self.configs_processor = ConfigProcessor(configs, configs_override)
+
+        if self.distributed_rank == 0:
+            logger.log()
     
+    def __start_from_checkpoint(self, run_uuid: str, checkpoint: Optional[int]):
+        checkpoint_path, global_step = experiment_run.get_run_checkpoint(
+            run_uuid,
+            checkpoint)
+
+        if global_step is None:
+            return 0
+        else:
+            self._load_checkpoint(checkpoint_path)
+            self.run.load_run = run_uuid
+
+        return global_step
+
+    def _save_pid(self):
+        if not self.run.pids_path.exists():
+            self.run.pids_path.mkdir()
+
+        pid_path = self.run.pids_path / f'{self.distributed_rank}.pid'
+        assert not pid_path.exists(), str(pid_path)
+
+        with open(str(pid_path), 'w') as f:
+            f.write(f'{os.getpid()}')
+
+    def _start_tracker(self):
+        tracker().reset_writers()
+
+        if self.is_evaluate:
+            return
+
+        if self.distributed_rank != 0:
+            return
+
+        if 'screen' in self.writers:
+            from skilledlab.internal.tracker.writers import screen
+            tracker().add_writer(screen.ScreenWriter())
+
+        if 'file' in self.writers:
+            raise NotImplementedError()
+
+            self.web_api = None
+    
+    def start(self, *,
+              run_uuid: Optional[str] = None,
+              checkpoint: Optional[int] = None):
+        if run_uuid is not None:
+            if checkpoint is None:
+                checkpoint = -1
+            global_step = self.__start_from_checkpoint(run_uuid, checkpoint)
+        else:
+            global_step = 0
+
+        self.run.start_step = global_step
+
+        self._start_tracker()
+        tracker().set_start_global_step(global_step)
+
+        if self.distributed_rank == 0:
+            self.__print_info()
+
+        if not self.is_evaluate:
+            if self.distributed_rank == 0:
+                from skilledlab.internal.computer.configs import computer_singleton
+                computer_singleton().add_project(lab_singleton().path)
+                self.run.save_info()
+            self._save_pid()
+
+            if self.distributed_rank == 0:
+                tracker().save_indicators(self.run.indicators_path)
+
+        self.is_started = True
+        return ExperimentWatcher(self)
+
+
+class GlobalParams:
+    def __init__(self):
+        self.configs = None
+        self.comment = None
+
+_global_params: Optional[GlobalParams] = None
+_internal: Optional[Experiment] = None
+
+
+def global_params_singleton() -> GlobalParams:
+    global _global_params
+
+    if _global_params is None:
+        _global_params = GlobalParams()
+
+    return _global_params
+
 
 def experiment_singleton() -> Experiment:
     global _internal

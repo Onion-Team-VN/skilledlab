@@ -74,10 +74,6 @@ class Lab:
 
         self.check_repo_dirty = self.configs['check_repo_dirty']
         self.indicators = self.configs['indicators']
-        if self.configs['web_api']:
-            raise NotImplemented()
-        else:
-            self.web_api = None
 
     def set_configurations(self, configs: Dict[str, any]):
         self.custom_configs.append(configs)
@@ -101,11 +97,12 @@ class Lab:
             experiments_path='logs',
             analytics_path='analytics',
             analytics_templates={},
-            indicators=[{
-                'class_name': 'Scalar',
-                'is_print': True,
-                'name': '*'
-            },
+            indicators=[
+                {
+                    'class_name': 'Scalar',
+                    'is_print': True,
+                    'name': '*'
+                },
                 {
                     'class_name': 'Scalar',
                     'is_print': False,
