@@ -54,7 +54,7 @@ class Lab:
         if not config_files:
             while path.exists() and not path.is_dir():
                 path = path.parent
-    
+
         for c in config_files:
             self.__merge_configs(c)
 
@@ -97,7 +97,7 @@ class Lab:
             path=None,
             check_repo_dirty=False,
             config_file_path=None,
-            data_path='data',
+            data_path='exp_data',
             experiments_path='logs',
             analytics_path='analytics',
             analytics_templates={},

@@ -157,6 +157,7 @@ class Experiment:
             automatically determining ``python_file``
         tags (Set[str], optional): Set of tags for experiment
     """
+    is_started: bool
     run: Run
     checkpoint_saver: CheckpointSaver
     distributed_rank: int
@@ -197,6 +198,7 @@ class Experiment:
 
         self.run.commit_message = ''
         self.writers = writers
+        self.is_started = False
         self.checkpoint_saver = CheckpointSaver(self.run.checkpoint_path)
         self.is_evaluate = is_evaluate
         self.distributed_rank = 0

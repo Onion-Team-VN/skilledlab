@@ -27,6 +27,6 @@ def get_experiments_path() -> Path:
 def configure(configurations: Dict[str, any]):
     r"""
     Set top level configurations through Python.
-    You can set the configurations set through ``.labml.yaml``.
+    You can set the configurations set through ``.skilledlab.yaml``.
     """
     _internal().set_configurations(configurations)

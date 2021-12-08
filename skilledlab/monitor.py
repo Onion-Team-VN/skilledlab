@@ -195,7 +195,7 @@ def loop(iterator_: Union[Collection, range, int], *,
         iterator_ (Union[Collection, range, int]): The iterator
 
     Keyword Arguments:
-        is_track (bool, optional): Whether track the loop time using :mod:`labml.tracker`.
+        is_track (bool, optional): Whether track the loop time using :mod:`skilledlab.tracker`.
             Default to ``True``.
         is_print_iteration_time (bool, optional): Whether to print iteration time. Default to ``True``.
     """

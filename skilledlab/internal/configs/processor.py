@@ -39,7 +39,7 @@ class ConfigProcessor:
             self.configs = None
             self.configs_dict = configs
             self.configs_dict.update(values)
-            self._register_dynamic_hyper_params()
+            # self._register_dynamic_hyper_params()
 
         self.values = values
         self.savers = []

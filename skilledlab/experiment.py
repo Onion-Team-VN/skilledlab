@@ -114,9 +114,9 @@ def add_model_savers(savers: Dict[str, ModelSaver]):
     Add custom model savers
 
     Arguments:
-        savers (Dict[str, ModelSaver]): a dictionary of :class:`labml.experiment.ModelSaver`.
-            These will be saved with :func:`labml.experiment.save_checkpoint`
-            and loaded with :func:`labml.experiment.load`.
+        savers (Dict[str, ModelSaver]): a dictionary of :class:`skilledlab.experiment.ModelSaver`.
+            These will be saved with :func:`skilledlab.experiment.save_checkpoint`
+            and loaded with :func:`skilledlab.experiment.load`.
     """
     _experiment_singleton().checkpoint_saver.add_savers(savers)
 
@@ -138,8 +138,8 @@ def add_pytorch_models(*args, **kwargs):
     Arguments:
         models (Dict[str, torch.nn.Module]): a dictionary of torch modules
             used in the experiment.
-            These will be saved with :func:`labml.experiment.save_checkpoint`
-            and loaded with :func:`labml.experiment.load`.
+            These will be saved with :func:`skilledlab.experiment.save_checkpoint`
+            and loaded with :func:`skilledlab.experiment.load`.
     """
 
     from skilledlab.internal.experiment.pytorch import add_models as _add_pytorch_models
@@ -161,8 +161,8 @@ def add_sklearn_models(models: Dict[str, any]):
 
     Arguments:
         models (Dict[str, any]): a dictionary of SKLearn models
-            These will be saved with :func:`labml.experiment.save_checkpoint`
-            and loaded with :func:`labml.experiment.load`.
+            These will be saved with :func:`skilledlab.experiment.save_checkpoint`
+            and loaded with :func:`skilledlab.experiment.load`.
     """
     from skilledlab.internal.experiment.sklearn import add_models as _add_sklearn_models
     _add_sklearn_models(models)
@@ -319,7 +319,7 @@ def save_bundle(path: Path, run_uuid: str, checkpoint: Optional[int] = None, *,
         run_uuid (str): experiment run to bundle
         checkpoint (str, optional): if provided the given checkpoint will be bundled.
             Otherwise it will bundle the last checkpoint.
-        data_files: List of data files (relative to :func:`labml.lab.get_data_path`) to be bundled.
+        data_files: List of data files (relative to :func:`skilledlab.lab.get_data_path`) to be bundled.
     """
     if data_files is None:
         data_files = []
@@ -389,11 +389,11 @@ def record(*,
             Defaults to ``{'tensorboard', 'sqlite', 'web_api'}``.
         tags (Set[str], optional): Set of tags for experiment
         exp_conf (Dict[str, any], optional): a dictionary of experiment configurations
-        lab_conf (Dict[str, any], optional): a dictionary of configurations for LabML.
+        lab_conf (Dict[str, any], optional): a dictionary of configurations for skilledlab.
          Use this if you want to change default configurations such as ``web_api``, and
          ``data_path``.
-        token (str, optional): a shortcut to provide LabML mobile app token (or url - ``web_api``)
-         instead of including it in ``lab_conf``. You can set this with :func:`labml.lab.configure`,
+        token (str, optional): a shortcut to provide skilledlab mobile app token (or url - ``web_api``)
+         instead of including it in ``lab_conf``. You can set this with :func:`skilledlab.lab.configure`,
          `or with a configuration file for the entire project <../guide/installation_setup.html>`_.
     """
 

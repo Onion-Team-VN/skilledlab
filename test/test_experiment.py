@@ -1,8 +1,7 @@
 import time
 import numpy as np 
 
-# from skilledlab import tracker, experiment, logger
-from labml import tracker, experiment, logger
+from skilledlab import tracker, experiment, logger
 
 # dummy train function
 def train():

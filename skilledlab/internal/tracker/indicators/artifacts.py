@@ -59,7 +59,7 @@ class _Collection(Artifact, ABC):
         self._last_add_step = -1
 
     def _collect_value(self, key: str, value):
-        from labml import tracker
+        from skilledlab import tracker
         if self._density is None:
             self._values[key] = value
         else:
@@ -130,7 +130,7 @@ class Image(_Collection):
         fig, axs = plt.subplots((n_images + cols - 1) // cols, cols,
                                 sharex='all', sharey='all',
                                 figsize=(8, 10))
-        from labml import tracker
+        from skilledlab import tracker
         fig.suptitle(f'{self.name}-{tracker.get_global_step()}')
         for i, img in enumerate(images):
             if len(images) > 1:

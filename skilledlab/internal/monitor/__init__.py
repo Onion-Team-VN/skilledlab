@@ -123,7 +123,7 @@ class Monitor:
              is_track: bool,
              is_print_iteration_time: bool):
         if len(self.__sections) != 0:
-            skilledlab_notice(['LabML Loop: ', ('Starting loop inside sections', Text.key), '\n',
+            skilledlab_notice(['skilledlab Loop: ', ('Starting loop inside sections', Text.key), '\n',
                           (
                               'This could be because some iterators crashed in a previous cell in a notebook.',
                               Text.meta)],

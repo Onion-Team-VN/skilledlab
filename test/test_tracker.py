@@ -3,7 +3,6 @@ import time
 import numpy as np
 
 from skilledlab import tracker, logger
-# from labml import tracker, logger
 
 
 # dummy train function

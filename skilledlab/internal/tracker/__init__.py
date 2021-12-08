@@ -143,11 +143,6 @@ class Tracker:
         self._create_indicator(key, value)
         self.indicators[key].collect_value(value)
     
-    def new_line(self):
-        for w in self.__writers:
-            if isinstance(w, ScreenWriter):
-                logger.log()
-    
     def namespace_enter(self, ns: Namespace):
         self.namespaces.append(ns)
 

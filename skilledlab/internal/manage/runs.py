@@ -88,7 +88,7 @@ def _test_remove_run_by_uuid(experiments_path: Path, run_uuid: str):
 
 
 def _test():
-    from labml import lab
+    from skilledlab import lab
     inspect(list(get_runs(lab.get_experiments_path())))
     # _test_checkpoints_by_uuid(lab.get_experiments_path(), '794ca6f21c1f11ebba97acde48001122')
     # _test_remove_run_by_uuid(lab.get_experiments_path(), '1443e69c1c2111eb8e8bacde48001122')

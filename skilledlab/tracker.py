@@ -70,8 +70,8 @@ def set_queue(name: str, queue_size: int = 10, is_print: bool = False):
         is_print: (bool, optional): Whether the indicator should be printed in console.
             Defaults to ``False``.
     """
-    raise NotImplemented()
-
+    from skilledlab.internal.tracker.indicators.numeric import Queue
+    _internal().add_indicator(Queue(name, queue_size, is_print))
 
 def set_histogram(name: str, is_print: bool = False):
     """
@@ -83,7 +83,8 @@ def set_histogram(name: str, is_print: bool = False):
         is_print: (bool, optional): Whether the indicator should be printed in console.
             Defaults to ``False``.
     """
-    raise NotImplemented()
+    from skilledlab.internal.tracker.indicators.numeric import Histogram
+    _internal().add_indicator(Histogram(name, is_print))
 
 
 def set_scalar(name: str, is_print: bool = False):
@@ -97,7 +98,8 @@ def set_scalar(name: str, is_print: bool = False):
         is_print: (bool, optional): Whether the indicator should be printed in console.
             Defaults to ``False``.
     """
-    raise NotImplemented()
+    from skilledlab.internal.tracker.indicators.numeric import Scalar
+    _internal().add_indicator(Scalar(name, is_print))
 
 
 def set_indexed_scalar(name: str):
