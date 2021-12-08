@@ -59,9 +59,9 @@ def create(*,
     if writers is None:
         writers = {'screen'}
 
-    if disable_screen and 'screen' in writers:
-        # writers.remove('screen')
-        pass
+    # if disable_screen and 'screen' in writers:
+    #     # writers.remove('screen')
+    #     pass
 
     if ignore_callers is None:
         ignore_callers = set()

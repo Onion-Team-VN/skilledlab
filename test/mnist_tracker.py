@@ -5,7 +5,8 @@ import torch.optim as optim
 import torch.utils.data
 from torchvision import datasets, transforms
 
-from skilledlab import lab, tracker, experiment, logger
+from skilledlab import lab, tracker, experiment, logger, monitor
+import sys
 
 
 class Net(nn.Module):
@@ -90,7 +91,7 @@ def main():
 
     # Configurations
     configs = {
-        'epochs': 10,
+        'epochs': 1,
         'train_batch_size': 64,
         'valid_batch_size': 100,
         'use_cuda': True,
@@ -130,7 +131,7 @@ def main():
     torch.manual_seed(configs['seed'])
 
     # ✨ Create the experiment
-    experiment.create(name='mnist_skilledlab_tracker')
+    experiment.create(name='mnist_skilledlab_tracker',writers={'screen','file'})
 
     # ✨ Save configurations
     experiment.configs(configs)
@@ -148,6 +149,8 @@ def main():
 
     # ✨ Save the models
     experiment.save_checkpoint()
+    sys.exit()
+
 
 
 #
