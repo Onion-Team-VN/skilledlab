@@ -11,6 +11,7 @@ from .indicators.numeric import Scalar
 from .namespace import Namespace
 from .writers import Writer
 from .writers.screen import ScreenWriter
+from .writers.file import Writer
 from ..logger import LogPart
 from ... import logger
 from ...logger import Text

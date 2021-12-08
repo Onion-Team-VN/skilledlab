@@ -5,7 +5,7 @@ import torch.optim as optim
 import torch.utils.data
 from torchvision import datasets, transforms
 
-from skilledlab import lab, tracker, experiment, logger
+from skilledlab import lab, tracker, experiment, logger, monitor
 
 
 class Net(nn.Module):
@@ -141,7 +141,7 @@ def main():
     # ✨ Start and monitor the experiment
     with experiment.start():
         #
-        for epoch in range(1, configs['epochs'] + 1):
+        for epoch in monitor.loop(configs['epochs'] + 1):
             train(model, optimizer, train_loader, device, configs['train_log_interval'])
             validate(model, valid_loader, device)
             logger.log()

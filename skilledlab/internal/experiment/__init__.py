@@ -296,7 +296,8 @@ class Experiment:
             tracker().add_writer(screen.ScreenWriter())
 
         if 'file' in self.writers:
-            raise NotImplementedError()
+            from skilledlab.internal.tracker.writers import file
+            tracker().add_writer(file.Writer(self.run.log_file))
 
             self.web_api = None
     

@@ -57,7 +57,7 @@ def create(*,
     """
 
     if writers is None:
-        writers = {'screen'}
+        writers = {'screen','file'}
 
     if disable_screen and 'screen' in writers:
         # writers.remove('screen')

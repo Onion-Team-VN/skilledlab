@@ -1,8 +1,8 @@
 import time
 import numpy as np 
 
-from skilledlab import tracker, experiment, logger
-
+# from skilledlab import tracker, experiment, logger
+from labml import tracker, experiment, logger
 # dummy train function
 def train():
     return np.random.randint(100)
@@ -12,7 +12,7 @@ def main():
     experiment.create(name='test_1')
     with experiment.start():
         tracker.set_global_step(0)
-        for i in range(1, 1001):
+        for i in range(1, 100):
             tracker.add_global_step()
             loss = train()
             acc = train()/2
