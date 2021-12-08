@@ -403,7 +403,7 @@ def record(*,
         lab_conf['web_api'] = token
 
     if lab_conf is not None:
-        from labml.internal.lab import lab_singleton as _internal
+        from skilledlab.internal.lab import lab_singleton as _internal
         _internal().set_configurations(lab_conf)
 
     create(name=name,

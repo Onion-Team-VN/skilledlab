@@ -169,9 +169,23 @@ class Experiment:
                  writers: Set[str],
                  ignore_callers: Set[str],
                  tags: Optional[Set[str]],
-                 is_evaluate: bool):
-        self.experiment_path = lab_singleton().experiments / name
+                 is_evaluate: bool):  
+        if python_file is None:
+            python_file = get_caller_file(ignore_callers)
+
+        lab_singleton().set_path(python_file)
+
+        if name is None:
+            file_path = pathlib.PurePath(python_file)
+            name = file_path.stem
         
+        if comment is None:
+            comment = ''
+        if global_params_singleton().comment is not None:
+            comment = global_params_singleton().comment
+        self.experiment_path = lab_singleton().experiments / name
+        if tags is None:
+            tags = set(name.split('_'))
         self.run = Run.create(
             uuid=uuid,
             experiment_path=self.experiment_path,
@@ -181,6 +195,8 @@ class Experiment:
             comment=comment,
             tags=list(tags))
 
+        self.run.commit_message = ''
+        self.writers = writers
         self.checkpoint_saver = CheckpointSaver(self.run.checkpoint_path)
         self.is_evaluate = is_evaluate
         self.distributed_rank = 0
@@ -312,6 +328,18 @@ class Experiment:
 
         self.is_started = True
         return ExperimentWatcher(self)
+    
+    def finish(self, status: str, details: any = None):
+        if not self.is_evaluate:
+            with open(str(self.run.run_log_path), 'a') as f:
+                end_time = time.time()
+                data = json.dumps({'status': status,
+                                   'rank': self.distributed_rank,
+                                   'details': details,
+                                   'time': end_time}, indent=None)
+                f.write(data + '\n')
+
+        tracker().finish_loop()
 
 
 class GlobalParams:

@@ -46,11 +46,15 @@ class Lab:
     def __load_configs(self, path: Path):
         if path == self.__current_path:
             return
-        self.__current_path = path
+        self.__current_path = path 
         config_files = self.__load_config_files(path)
 
         self.configs = self.__default_config()
 
+        if not config_files:
+            while path.exists() and not path.is_dir():
+                path = path.parent
+    
         for c in config_files:
             self.__merge_configs(c)
 

@@ -4,26 +4,42 @@ from typing import Dict, List, Optional, Callable, Union, Tuple
 from skilledlab.internal import util
 from skilledlab.internal.lab import lab_singleton, LabYamlNotfoundError
 from skilledlab.internal.util import strings
-from .indicator import Indicator
-from .indicator.factory import load_indicator_from_dict, create_default_indicator
-from .indicator.numeric import Scalar
+from skilledlab.internal.util.colors import StyleCode
+from .indicators import Indicator
+from .indicators.factory import load_indicator_from_dict, create_default_indicator
+from .indicators.numeric import Scalar
 from .namespace import Namespace
+from .writers import Writer
+from .writers.screen import ScreenWriter
+from ..logger import LogPart
+from ... import logger
+from ...logger import Text
 
 
 class Tracker:
+    __loop_counter: int
+    __set_looping_indicators: Optional[Callable[[List[Union[str, Tuple[str, Optional[StyleCode]]]]], None]]
+
     indicators: Dict[str, Indicator]
     dot_indicators: Dict[str, Indicator]
     namespaces: List[Namespace]
 
     def __init__(self) -> None:
+        self.__writers: List[Writer] = []
         self.__start_global_step: Optional[int] = None
         self.__global_step: Optional[int] = None
+        self.__last_global_step: Optional[int] = None
+
+        self.__set_looping_indicators = None
+        self.__loop_counter = 0
 
         self.indicators = {}
         self.dot_indicators = {}
         self.is_indicators_updated = True
         self.__indicators_file = None
         self.reset_store()
+        from skilledlab.internal.tracker.writers import screen
+        self.add_writer(screen.ScreenWriter())
     
     def __assert_name(self, name: str, value: any):
         if name.endswith("."):
@@ -31,6 +47,61 @@ class Tracker:
                 assert self.dot_indicators[name].equals(value)
 
         assert name not in self.indicators, f"{name} already used"
+
+    def add_writer(self, writer: Writer):
+        self.__writers.append(writer)
+
+    def reset_writers(self):
+        self.__writers = []
+        self.is_indicators_updated = True
+
+    def _write_writer(self, writer: Writer, global_step):
+        return writer.write(global_step=global_step,
+                            indicators=self.indicators)
+
+    def clear(self):
+        for k, v in self.indicators.items():
+            v.clear()
+    
+    def write(self):
+        global_step = self.global_step
+
+        self.save_indicators()
+
+        indicators_print = None
+
+        for w in self.__writers:
+            if isinstance(w, ScreenWriter):
+                indicators_print = self._write_writer(w, global_step)
+            else:
+                self._write_writer(w, global_step)
+        self.clear()
+
+        if indicators_print is not None:
+            if self.__is_looping:
+                self.__set_looping_indicators(indicators_print)
+            else:
+                parts = [(f"{self.global_step :8,}:  ", Text.highlight)]
+                parts += indicators_print
+                logger.log(parts, is_new_line=False)
+
+    
+    @property
+    def global_step(self) -> int:
+        if self.__global_step is not None:
+            return self.__global_step
+
+        global_step = 0
+        if self.__start_global_step is not None:
+            global_step = self.__start_global_step
+
+        if self.__is_looping:
+            return global_step + self.__loop_counter
+
+        if self.__last_global_step is not None:
+            return self.__last_global_step
+
+        return global_step
     
     def reset_store(self):
         self.indicators = {}
@@ -53,7 +124,6 @@ class Tracker:
             return
 
         ind_key, ind_score = strings.find_best_pattern(key, self.dot_indicators.keys())
-        print(self.dot_indicators)
         if ind_key is None:
             raise ValueError(f"Cannot find matching indicator for {key}")
         if ind_score == 0:
@@ -72,6 +142,11 @@ class Tracker:
 
         self._create_indicator(key, value)
         self.indicators[key].collect_value(value)
+    
+    def new_line(self):
+        for w in self.__writers:
+            if isinstance(w, ScreenWriter):
+                logger.log()
     
     def namespace_enter(self, ns: Namespace):
         self.namespaces.append(ns)
@@ -118,6 +193,23 @@ class Tracker:
     
     def set_start_global_step(self, global_step: Optional[int]):
         self.__start_global_step = global_step
+
+    @property
+    def __is_looping(self):
+        return self.__set_looping_indicators is not None
+
+    def start_loop(self, set_looping_indicators: Callable[[List[LogPart]], None]):
+        self.__set_looping_indicators = set_looping_indicators
+
+    def loop_count(self, value: int):
+        self.__loop_counter = value
+
+    def finish_loop(self):
+        self.__last_global_step = self.global_step
+        self.__set_looping_indicators = None
+        for w in self.__writers:
+            w.flush()
+    
 
 
 _internal: Optional[Tracker] = None

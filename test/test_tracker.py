@@ -15,10 +15,18 @@ def main():
     # Reset global step because we incremented in previous loop
     tracker.set_global_step(0)
 
-    for i in range(1, 401):
+    for i in range(1, 1001):
         tracker.add_global_step()
         loss = train()
-        tracker.add(loss=loss)
+        acc = train()/2
+        valid = train()/3
+        tracker.add(
+            {
+                'loss': loss,
+                'valid': valid,
+                'acc': acc 
+            }
+        )
         if i % 10 == 0:
             tracker.save()
         if i % 100 == 0:
