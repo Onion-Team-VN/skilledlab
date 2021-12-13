@@ -11,6 +11,7 @@ from torch import nn
 
 from labml import experiment
 from labml.configs import option
+from torchvision import transforms
 
 from skilledlab.experiments.mnist import MNISTConfigs
 from skilledlab.cnn import CnnNetBase
@@ -35,10 +36,18 @@ def _cnnnet(c: Configs):
     # Move the model to the device
     return model.to(c.device)
 
+@option(Configs.dataset_transforms)
+def mnist_transforms():
+    return transforms.Compose([
+        transforms.RandomAffine(degrees=5, translate=(0.05, 0.05), scale=(0.98, 1.02)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,))
+    ])
+
 
 def main():
     # Create experiment 
-    experiment.create(name='mlp',comment='mnist_cnn',writers={'screen'})
+    experiment.create(name='cnn',comment='mnist_cnn_data_augmentation',writers={'screen'})
     # Create configuration 
     conf = Configs()
     # Load configuration 
