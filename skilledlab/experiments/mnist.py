@@ -30,6 +30,10 @@ class MNISTConfigs(MNISTDatasetConfigs, TrainValidConfigs):
 
     # Optimizer
     optimizer: torch.optim.Adam
+
+    # Learning rate scheduler 
+    scheduler: None
+
     # Training device
     device: torch.device = DeviceConfigs()
 
@@ -93,8 +97,10 @@ class MNISTConfigs(MNISTDatasetConfigs, TrainValidConfigs):
         if self.mode.is_train:
             # Calculate gradients
             loss.backward()
-            # Take optimizer step
             self.optimizer.step()
+             # Take optimizer step
+            if self.scheduler is not None: 
+                self.scheduler.step()
             # Log the model parameters and gradients on last batch of every epoch
             if batch_idx.is_last:
                 tracker.add('model', self.model)
