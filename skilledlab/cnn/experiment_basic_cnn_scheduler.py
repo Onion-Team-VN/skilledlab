@@ -23,6 +23,7 @@ class Configs(MNISTConfigs):
     n_channels: List[int] = [16, 16, 16, 16, 16]
     # Kernel size of the initial convolution layer
     first_kernel_size: int = 1
+    use_scheduler: True
 
 @option(Configs.scheduler)
 def _scheduler(c: Configs):
