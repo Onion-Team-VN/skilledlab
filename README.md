@@ -1,2 +1,2 @@
-# socrates
+# skilledlab
 AI experiment monitoring 
