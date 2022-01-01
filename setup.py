@@ -7,7 +7,7 @@ setuptools.setup(
     name='skilledlab',
     version='0.0.1',
     author="skilledin.ai",
-    author_email="contact@skilledin.ai",
+    author_email="duyanh@skilledin.ai",
     description="🧑‍🏫 Implementations/tutorials of deep learning papers with side-by-side notes 📝",
     long_description=long_description,
     long_description_content_type="",
