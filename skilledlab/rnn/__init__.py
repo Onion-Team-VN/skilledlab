@@ -5,9 +5,10 @@ title: Simple recuurent neural network
 from typing import Optional, Tuple
 
 import torch 
-from torch import nn 
+from torch import nn
+from labml_helpers.module import Module 
 
-class LastTimeStep(nn.Module):
+class LastTimeStep(Module):
     """
     A class for extracting the hidden activations of the last time step following 
     the output of a PyTorch RNN module. 
@@ -47,7 +48,7 @@ class LastTimeStep(nn.Module):
         return last_step.reshape(batch_size, -1)
 
 
-class SimpleRnnBase(nn.Module):
+class SimpleRnnBase(Module):
     """
     Simple RNN network 
     """
@@ -61,6 +62,32 @@ class SimpleRnnBase(nn.Module):
         self.base = nn.Sequential(
             nn.Embedding(vocab_size, embed_size),
             nn.RNN(
+                embed_size, 
+                hidden_nodes,
+                num_layers, 
+                batch_first=True,
+                bidirectional= True),
+            LastTimeStep(True)
+        )
+    
+    def forward(self, x:torch.Tensor):
+        return self.base(x)
+
+
+class SimpleLstmBase(Module):
+    """
+    Simple RNN network 
+    """
+    def __init__(self, 
+        vocab_size: int, 
+        embed_size: int=200, 
+        hidden_nodes: int=128,
+        num_layers: int = 3,
+        ) -> None:
+        super().__init__()
+        self.base = nn.Sequential(
+            nn.Embedding(vocab_size, embed_size),
+            nn.LSTM(
                 embed_size, 
                 hidden_nodes,
                 num_layers, 
