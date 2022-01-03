@@ -51,6 +51,42 @@ class infoShareBlock(Module):
     def forward(self, x: torch.Tensor):
         return self.act(self.bn(self.conv(x)))
 
+class ResidualBottleNeck(Module):
+    def __init__(self, in_channels: int , out_channels: int, kernel_size: int =3):
+        super().__init__()
+        #how much padding will our convolutional layers need to maintain the input shape
+        pad = (kernel_size-1)//2
+        #The botteneck should be smaller, so output/4 or input. You could also try changing max to min, its not a major issue. 
+        bottleneck = max(out_channels//4, in_channels)
+        #Define the three sets of BN and convolution layers we need. 
+        #Notice that for the 1x1 convs we use padding=0, because 1x1 will not change shape! 
+        self.F = nn.Sequential(
+            #Compress down
+            nn.BatchNorm2d(in_channels),
+            nn.ReLU(),
+            nn.Conv2d(in_channels, bottleneck, 1, padding=0),
+            #Normal layer doing a full conv
+            nn.BatchNorm2d(bottleneck),
+            nn.LeakyReLU(),
+            nn.Conv2d(bottleneck, bottleneck, kernel_size, padding=pad),
+            #Expand back up
+            nn.BatchNorm2d(bottleneck),
+            nn.LeakyReLU(),
+            nn.Conv2d(bottleneck, out_channels, 1, padding=0)
+        )
+
+        #By default, our shortcut will be the identiy function - which simply returns the input as the output
+        self.shortcut = nn.Identity()
+        #If we need to change the shape, then lets turn the shortcut into a small layer with 1x1 conv and BM
+        if in_channels != out_channels:
+            self.shortcut =  nn.Sequential(
+                    nn.Conv2d(in_channels, out_channels, 1, padding=0), 
+                    nn.BatchNorm2d(out_channels)
+                )
+    def forward(self, x):
+    # shortcut(x) plays the role of "x", do as little work as possible to keep the tensor shapes the same.
+        return self.shortcut(x) + self.F(x) 
+
 
 class CnnNetBase(Module):
     
@@ -158,4 +194,36 @@ class CnnSkipInfoShareBase(Module):
         # Global average pooling
         return x.mean(dim=-1)
 
-
+class CnnResBase(Module):
+    def __init__(self,n_channels: List[int],
+                img_channels: int = 1, first_kernel_size: int = 7) -> None:
+        super().__init__()
+        self.conv = nn.Conv2d(img_channels, n_channels[0],
+                              kernel_size=first_kernel_size, stride=2, padding=first_kernel_size // 2)
+        # List of blocks
+        blocks = []
+        # Number of channels from previous layer (or block)
+        prev_channels = n_channels[0]
+        # Loop through each feature map size
+        # Number of channels from previous layer (or block)
+        prev_channels = n_channels[0]
+        # Loop through each feature map size
+        # Loop through each feature map size
+        for i, channels in enumerate(n_channels):
+            blocks.append(ResidualBottleNeck(in_channels=prev_channels, out_channels=channels,kernel_size=3))
+            prev_channels = channels
+        # Stack the blocks
+        self.blocks = nn.Sequential(*blocks)
+    
+    def forward(self, x: torch.Tensor):
+        """
+        * `x` has shape `[batch_size, img_channels, height, width]`
+        """
+        # Initial convolution and batch normalization
+        x = self.conv(x)
+        # Convolutional Blocks 
+        x = self.blocks(x)
+        # Change `x` from shape `[batch_size, channels, h, w]` to `[batch_size, channels, h * w]`
+        x = x.view(x.shape[0], x.shape[1], -1)
+        # Global average pooling
+        return x.mean(dim=-1)
