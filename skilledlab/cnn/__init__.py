@@ -2,7 +2,6 @@ from typing import List, Optional
 
 import torch
 from torch import nn
-
 from labml_helpers.module import Module
 
 class ConvBLock(Module):
@@ -17,7 +16,6 @@ class ConvBLock(Module):
         return self.act(self.conv(x))
         
     
-
 class SkipConvBlock(Module):
     def __init__(self, n_layers: int, in_channels: int, out_channels: int,kernel_size: int) -> None:
         super().__init__()
@@ -41,6 +39,17 @@ class SkipConvBlock(Module):
         x = torch.cat(activations, dim=1)
         
         return self.act(self.bns[-1](self.layers[-1](x)))
+
+
+class infoShareBlock(Module):
+    def __init__(self,n_filters: int = 3) -> None:
+        super().__init__()
+        self.conv = nn.Conv2d(n_filters, n_filters, (1,1), padding=0)
+        self.bn = nn.BatchNorm2d(n_filters)
+        self.act = nn.ReLU()
+
+    def forward(self, x: torch.Tensor):
+        return self.act(self.bn(self.conv(x)))
 
 
 class CnnNetBase(Module):
@@ -111,5 +120,42 @@ class CnnSkipBase(Module):
         # Global average pooling
         return x.mean(dim=-1)
 
+
+
+class CnnSkipInfoShareBase(Module):
+    def __init__(self,n_channels: List[int],
+                img_channels: int = 1, first_kernel_size: int = 7) -> None:
+        super().__init__()
+        # Initial convolution layer maps from `img_channels` to number of channels in the first
+        self.conv = nn.Conv2d(img_channels, n_channels[0],
+                              kernel_size=first_kernel_size, stride=2, padding=first_kernel_size // 2)
+        
+        # List of blocks
+        blocks = []
+        # Number of channels from previous layer (or block)
+        prev_channels = n_channels[0]
+        # Loop through each feature map size
+        # Number of channels from previous layer (or block)
+        prev_channels = n_channels[0]
+        # Loop through each feature map size
+        for i, channels in enumerate(n_channels):
+            blocks.append(SkipConvBlock(n_layers=3,in_channels=prev_channels,out_channels=channels,kernel_size=3))
+            blocks.append(infoShareBlock(channels))
+            prev_channels = channels
+        # Stack the blocks
+        self.blocks = nn.Sequential(*blocks)
+    
+    def forward(self, x: torch.Tensor):
+        """
+        * `x` has shape `[batch_size, img_channels, height, width]`
+        """
+        # Initial convolution and batch normalization
+        x = self.conv(x)
+        # Convolutional Blocks 
+        x = self.blocks(x)
+        # Change `x` from shape `[batch_size, channels, h, w]` to `[batch_size, channels, h * w]`
+        x = x.view(x.shape[0], x.shape[1], -1)
+        # Global average pooling
+        return x.mean(dim=-1)
 
 
