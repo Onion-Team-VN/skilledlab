@@ -14,7 +14,7 @@ from labml.configs import option
 from torchvision import transforms
 
 from skilledlab.experiments.cifar10 import CIFAR10Configs
-from skilledlab.cnn import CnnNetBase
+from skilledlab.normalization.batch_norm import CnnNetBase
 
 class Configs(CIFAR10Configs):
     # Number of channels for each feature map size
@@ -39,7 +39,7 @@ def _cnnnet(c: Configs):
     
 def main():
     # Create experiment 
-    experiment.create(name='cnn',comment='cifar10_cnn_data_augmentation',writers={'screen'})
+    experiment.create(name='cnn',comment='cifar10_cnn_data_augmentation_bn',writers={'screen'})
     # Create configuration 
     conf = Configs()
     # Load configuration 

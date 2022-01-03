@@ -5,6 +5,7 @@ summary: >
   Train a MLP on MNIST 
 ---
 """
+import torch 
 from typing import List, Optional
 
 from torch import nn
@@ -21,8 +22,15 @@ class Configs(CIFAR10Configs):
     n_channels: List[int] = [16, 16, 16, 16, 16]
     # Kernel size of the initial convolution layer
     first_kernel_size: int = 7
-    epochs: int = 100
+    use_scheduler: True
 
+@option(Configs.scheduler)
+def _scheduler(c: Configs):
+    """
+    ### Create scheduler
+    """
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(c.optimizer, c.epochs//3, eta_min=0.0001)
+    return scheduler
 
 @option(Configs.model)
 def _cnnnet(c: Configs):
@@ -39,7 +47,7 @@ def _cnnnet(c: Configs):
     
 def main():
     # Create experiment 
-    experiment.create(name='cnn',comment='cifar10_cnn_data_augmentation',writers={'screen'})
+    experiment.create(name='cnn',comment='cifar10_cnn_data_augmentation_lr_scheduler',writers={'screen'})
     # Create configuration 
     conf = Configs()
     # Load configuration 
