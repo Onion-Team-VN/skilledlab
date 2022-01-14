@@ -34,7 +34,7 @@ class SkipConvBlock(Module):
         
         for layer, bn in zip(self.layers[:-1], self.bns[:-1]):
             x = self.act(bn(layer(x)))
-            activations.append( x )
+            activations.append(x)
         #Which is the concatination of all the activations here. Our tensors are organized as (B, C, W, H), which is the default in PyTorch. But you can change that, and sometimes people use (B, W, H, C). In that situation the C channel is at index 3 instead of 1. So you would change `cat=3` in that scenario. This is also how you would adapt this code to work with RNNs
         x = torch.cat(activations, dim=1)
         
@@ -120,15 +120,13 @@ class CnnNetBase(Module):
         # Global average pooling
         return x.mean(dim=-1)
 
-
 class CnnSkipBase(Module):
     def __init__(self,n_channels: List[int],
-                img_channels: int = 1, first_kernel_size: int = 7) -> None:
+                img_channels: int = 1, first_kernel_size: int = 3) -> None:
         super().__init__()
         # Initial convolution layer maps from `img_channels` to number of channels in the first
         self.conv = nn.Conv2d(img_channels, n_channels[0],
                               kernel_size=first_kernel_size, stride=2, padding=first_kernel_size // 2)
-        
         # List of blocks
         blocks = []
         # Number of channels from previous layer (or block)
@@ -220,7 +218,7 @@ class CnnResBase(Module):
         * `x` has shape `[batch_size, img_channels, height, width]`
         """
         # Initial convolution and batch normalization
-        x = self.conv(x)
+        # x = self.conv(x)
         # Convolutional Blocks 
         x = self.blocks(x)
         # Change `x` from shape `[batch_size, channels, h, w]` to `[batch_size, channels, h * w]`

@@ -21,7 +21,6 @@ class Configs(CIFAR10Configs):
     n_channels: List[int] = [16, 16, 16, 16, 16]
     # Kernel size of the initial convolution layer
     first_kernel_size: int = 7
-    epochs: int = 100
 
 
 @option(Configs.model)
